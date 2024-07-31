@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mesh Animation Compression project (COMP 6311)</title>
+    <style>
+        body {
+            font-family: 'Cambria', serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        header,
+        footer {
+            text-align: center;
+            background-color: #ffe0b2;
+            /* Light orange background color */
+            padding: 20px;
+        }
+
+        section {
+            padding: 40px;
+            margin: 0px 0;
+            position: relative;
+        }
+
+        .strip-between-sections {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 10px;
+            /* Adjust the height of the strip */
+            background-color: #424242;
+            /* Dark gray background color */
+        }
+
+        .video-section {
+            background-color: #e0f7fa;
+            /* Light blue background color */
+        }
+
+        .image-section {
+            background-color: #ffe0b2;
+            /* Light orange background color */
+        }
+
+        .content-section {
+            background-color: #dcedc8;
+            /* Light green background color */
+        }
+
+        footer {
+            margin-top: 20px;
+        }
+
+        p.smaller-font {
+            font-size: 14px;
+            /* Adjust the font size as needed */
+        }
+
+        h2 {
+            text-align: center;
+            /* Center-align h2 elements */
+        }
+
+        ul {
+            list-style-type: disc;
+            /* Set the list item marker to a disc (bullet) */
+            margin-top: 10px;
+            /* Add some space above the list */
+        }
+
+        img {
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header Section -->
+    <header>
+        <h1 style="font-size: 40px;margin-bottom:60px;">Mesh Animation Compression </h1>
+        <h1 />
+        <h2 style="font-size: 24px;">Game Animation Final Project</h2>
+        <h2 style="font-size: 24px;">COMP-6311</h2>
+        <h2 style="font-size: 24px;">Fall 2023</h2>
+        <h2 style="font-size: 24px;margin-top:60px">Hossein Pejman</h2>
+        <h2 style="font-size: 20px;">hossein.pejman-tavallaee.1@ens.etsmtl.ca</h2>
+    </header>
+
+
+    <section class="content-section">
+        <div class="strip-between-sections"></div>
+        <h2 style="font-size: 30px;margin-bottom:60px;">INTRODUCTION</h2>
+        <p style="font-size: 24px;">In this project, the following paper related to mesh animation compression was
+            implemented: </p>
+
+        <div style="text-align: center;">
+            <h1><a href="https://dl.acm.org/doi/10.1145/3300198" target="_blank" rel="noopener noreferrer">Motion-aware
+                    Compression and Transmission of Mesh Animation Sequences</a></h1>
+            <p style="font-size: 16px;margin-bottom:30px;margin-top:-15px"> Bailin Yang et al, ACM Trans. Intell. Syst.
+                Technol. 10, 3, Article 25 (May 2019), 21 pages</p>
+        </div>
+
+        <ul style="font-size: 24px;margin-bottom:30px">
+            <p />
+            <li>The paper proposed a method for vertex compression of mesh animation sequences with fixed connectivity
+                between vertices (faces information) for all frames, such that the faces information of all
+                frames are the same.</li>
+            <p />
+            <li>The main idea of this paper is to find the motion similarity of vertices of frames by grouping the
+                frames with similar vertex <b>motion strength</b> (<b>Temporal clustering</b>) and finding the motion
+                strength similarity of vertices inside of each frame (<b>spatial segmentation</b>).</li>
+            <p />
+            <li>The proposed mesh compression method is somewhat similar to the fundamental approach used in video
+                compression where temporal and spatial redundancies are removed using inter-prediction and
+                intra-prediction, respectively.</li>
+        </ul>
+
+
+        <section class="content-section">
+            <div class="strip-between-sections"></div>
+            <h2 style="font-size: 30px;margin-bottom:60px;">MESH ANIMATION COMPRESSION ALGORITHM</h2>
+            <p style="font-size: 24px;">The proposed method for mesh animation compression has the following steps:</p>
+
+            <!-- ################### -->
+            <ol style="font-size: 24px;margin-bottom:30px">
+                <li><b>Motion strength Computation </b></li>
+                <p> In the first step , the motion strength of the vertices of all frames is computed based on the
+                    <a href="https://www.youtube.com/watch?v=si6ka6HeUdY" target="_blank"
+                        rel="noopener noreferrer">Curvature</a> and
+                    <a href="https://www.youtube.com/watch?v=VIqA8U9ozIA&t" target="_blank"
+                        rel="noopener noreferrer">Torsion</a> of curves related to the trajectory of vertices over
+                    frames. The curvature and torsion of a curve show how sharply it is twisting in space. The positions
+                    of each vertex V in two consecutive frames t and t+1, make the given vector r. In other words, we
+                    have FxN vector r in total, where F is the number of frames and N is the number of vertices in each
+                    frame. The torsion and curvature for each vector r can be computed as follows:
+                </p>
+                <div style="text-align: center;">
+                    <img src="contents/fig1.png">
+                </div>
+
+
+                <!-- ################### -->
+                <li><b>Temporal Clustering</b></li>
+                <p>A matrix including curvature and torsion of vertices is formed, where i and j show the indices of
+                    vertices and frames, respectively. Then, the rows of this matrix are clustered using the k-mean
+                    algorithm. In other words, frames are clustered in S groups based on similarities of curvature and
+                    torsion of their vertices.</p>
+                <div style="text-align: center;">
+                    <img src="contents/fig2.png">
+                </div>
+                <!-- ################### -->
+                <li><b>Spatial Segmentation </b></li>
+                <p>The matrix of curvatures and torsions of vertices of all frames for each cluster is formed. The first
+                    three columns denote the average coordinates of the vertex i-th within a given cluster of frames.
+                    Each row shows the torsion and curvature values of all vertices (N) for all frames of a given
+                    cluster. The &alpha; value is a weight that determines the importance of each component. The rows of
+                    this matrix are grouped using the k-mean algorithm. In this case, vertices with similar motion
+                    strength inside each frame of the cluster are grouped (segmented).</p>
+                <div style="text-align: center;">
+                    <img src="contents/fig3.png">
+                </div>
+                <!-- ################### -->
+                <li><b>Compute Graph Fourier transform (GFT)</b></li>
+                <p><a href="https://ieeexplore.ieee.org/document/6638850" target="_blank"
+                        rel="noopener noreferrer">GFT</a> is a mathematical transform that decomposes the Laplacian
+                    Matrix of a graph into eigenvalues and eigenvectors. To compute the GFT coefficients of vertices, we
+                    first compute the <a href="https://en.wikipedia.org/wiki/Laplacian_matrix" target="_blank"
+                        rel="noopener noreferrer">Laplacian matrix</a> (L) for the vertices of each segment. If a
+                    segment has N vertices, the matrix of eigenvectors of L are NxN, and the vectors of GFT coefficient
+                    for axes X, Y, and Z values are computed as follows:</p>
+                <div style="text-align: center;">
+                    <img src="contents/fig4.png">
+                </div>
+                <p>where U<sup>T</sup> the transpose of the eigenvectors matrix and Vx, Vy, and Vz are the vectors of
+                    elements of each axis for all vertices of a segment. The graph can be compressed by zeroing out the
+                    k coefficients of vectors with the smallest magnitude values from the following vector set:</p>
+                <div style="text-align: center;">
+                    <img src="contents/fig5.png">
+                </div>
+                <p>Finally, by doing the inverse transform of GFT, the reconstructed (compressed) vertices are computed:
+                </p>
+                <div style="text-align: center;">
+                    <img src="contents/fig6.png">
+                </div>
+                <!-- ################### -->
+                <li><b>Compression Error Calculation</b></li>
+                <p>The compression error between the original and reconstructed vertices is calculated using the <a
+                        href="https://www.sciencedirect.com/science/article/pii/S0097849303002267?via%3Dihub"
+                        target="_blank" rel="noopener noreferrer">Karni-Gotsman</a> error method.</p>
+            </ol>
+
+
+            <!-- ##################### MESH ANIMATIOM COMPRESSION SOFTWARE ####################### -->
+
+            <section class="content-section">
+                <div class="strip-between-sections"></div>
+                <h2 style="font-size: 30px;margin-bottom:60px;">MESH ANIMATIOM COMPRESSION SOFTWARE</h2>
+                <p style="font-size: 24px;">The mesh animation compression algorithm was implemented using C++ (Visual
+                    Studio 2019). The libraries used in the project are as follows:</p>
+
+                <ul style="font-size: 24px;margin-bottom:30px">
+                    <p />
+                    <li><b>Eigen</b> for matrix computations.</li>
+                    <p />
+                    <li><b>GLEW library</b>.</li>
+                    <p />
+                    <li><b>Imgui</b> and <b>nfd</b> for creating controls (Button, TextBox, …) in the OpenGL program.
+                    </li>
+                </ul>
+
+                <p style="font-size: 24px;margin-bottom:30px"> Each step of the proposed mesh compression method is
+                    implemented in separate modules (classes).</p>
+                <p style="font-size: 24px;margin-bottom:30px"> The software has the following features:</p>
+
+                <ul style="font-size: 24px;margin-bottom:30px">
+                    <p />
+                    <li>Selecting the number of temporal clusters and spatial segments. </li>
+                    <p />
+                    <li>Loading the .obj file of a mesh animation with an optional number of frames and vertices.
+                    </li>
+                    <p />
+                    <li>Reconstructing the mesh animation with an optional compression factor</li>
+                    <p />
+                    <li>Computing and showing the KG-error after reconstruction.</li>
+                    <p />
+                    <li>Save the reconstructed frames in an optional folder.</li>
+                </ul>
+
+                <div style="font-size: 24px;margin-bottom:30px;">
+                    <p>The video below shows an example of loading different mesh animations with the desired number of
+                        frames a vertices.</p>
+                    <div style="text-align: center;margin-bottom:30px;">
+                        <video width="800" height="480" controls>
+                            <source src="contents/video1.mp4" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                </div>
+
+                <div style="font-size: 24px;margin-bottom:30px;">
+
+                    <p>After compression, we can reconstruct the mesh animation with an optional compression factor. For
+                        example, as shown in the video below selecting a very high compression factor (99%) obviously
+                        changes the shape of the object.
+                    <p>
+                    <div style="text-align: center;margin-bottom:30px;">
+                        <video width="800" height="480" controls>
+                            <source src="contents/video2.mp4" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                </div>
+                <div style="font-size: 24px;margin-bottom:30px;">
+
+                    <p>One of the drawbacks of this method that was observed during evaluation is that the quality of
+                        the reconstructed mesh is substantially dependent on the number of temporal clusters and spatial
+                        segments. For example, as can be seen in the following video, choosing 20 segments completely
+                        destroys the shape of the mesh.</p>
+
+                    <div style="text-align: center;margin-bottom:30px;">
+                        <video width="800" height="480" controls>
+                            <source src="contents/video3.mp4" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+
+                    </div>
+                </div>
+
+
+</body>
+
+</html>
